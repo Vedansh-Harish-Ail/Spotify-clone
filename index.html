@@ -16,8 +16,10 @@
         </header>
 
         <div class="player-section">
-            <!-- YouTube Player -->
-            <div id="player"></div>
+            <!-- Album Art -->
+            <div class="album-art">
+                <img id="album-img" src="https://via.placeholder.com/300/667eea/ffffff?text=🎵" alt="Album Art">
+            </div>
 
             <!-- Now Playing Info -->
             <div class="now-playing">
@@ -25,23 +27,33 @@
                 <p id="song-artist">-</p>
             </div>
 
+            <!-- Audio Element -->
+            <audio id="audio-player" preload="metadata"></audio>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <span id="current-time">0:00</span>
+                <input type="range" id="progress-bar" value="0" max="100">
+                <span id="duration">0:00</span>
+            </div>
+
             <!-- Controls -->
             <div class="controls">
-                <button id="prev-btn" class="control-btn">⏮️ Previous</button>
-                <button id="play-btn" class="control-btn play">▶️ Play</button>
-                <button id="next-btn" class="control-btn">Next ⏭️</button>
+                <button id="prev-btn" class="control-btn">⏮️</button>
+                <button id="play-btn" class="control-btn play">▶️</button>
+                <button id="next-btn" class="control-btn">⏭️</button>
             </div>
 
             <!-- Volume -->
             <div class="volume-control">
-                <label>🔊 Volume</label>
-                <input type="range" id="volume" min="0" max="100" value="50">
+                <label>🔊</label>
+                <input type="range" id="volume" min="0" max="100" value="70">
             </div>
         </div>
 
         <!-- Playlist -->
         <div class="playlist">
-            <h3>📋 Playlist</h3>
+            <h3>📋 Playlist (<span id="song-count">0</span> songs)</h3>
             <div id="song-list"></div>
         </div>
     </div>

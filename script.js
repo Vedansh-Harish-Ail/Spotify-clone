@@ -1,100 +1,122 @@
-// Popular Indian Songs with YouTube IDs
+// Simple HTML5 Audio Player for MP3 files
+
+// INSTRUCTIONS: Put your MP3 files in a "songs" folder
+// Update the songs array below with your MP3 filenames
+
 const songs = [
     {
-        title: "Kesariya",
-        artist: "Arijit Singh - Brahmastra",
-        youtubeId: "QANQBrzUPB8"
+        title: "Song 1",
+        artist: "Artist 1",
+        file: "songs/song1.mp3",
+        cover: "https://via.placeholder.com/300/667eea/ffffff?text=Song+1"
     },
     {
-        title: "Apna Bana Le",
-        artist: "Arijit Singh - Bhediya",
-        youtubeId: "qri7abitAu8"
+        title: "Song 2",
+        artist: "Artist 2",
+        file: "songs/song2.mp3",
+        cover: "https://via.placeholder.com/300/764ba2/ffffff?text=Song+2"
     },
     {
-        title: "Tum Hi Ho",
-        artist: "Arijit Singh - Aashiqui 2",
-        youtubeId: "IJq0yyWug1k"
-    },
-    {
-        title: "Chaleya",
-        artist: "Arijit Singh - Jawan",
-        youtubeId: "OqzMeH_Ym1U"
-    },
-    {
-        title: "Raataan Lambiyan",
-        artist: "Jubin Nautiyal - Shershaah",
-        youtubeId: "ixMVSPqMRbU"
-    },
-    {
-        title: "Deva Deva",
-        artist: "Arijit Singh - Brahmastra",
-        youtubeId: "nCHP3PQqxSQ"
-    },
-    {
-        title: "Pal Pal Dil Ke Paas",
-        artist: "Kishore Kumar - Classic",
-        youtubeId: "yzU_t0Xy-Ow"
-    },
-    {
-        title: "Tere Hawaale",
-        artist: "Arijit Singh - Laal Singh Chaddha",
-        youtubeId: "Dz0QGW7kNkI"
+        title: "Song 3",
+        artist: "Artist 3",
+        file: "songs/song3.mp3",
+        cover: "https://via.placeholder.com/300/1ed760/ffffff?text=Song+3"
     }
+    // Add more songs here following the same format
 ];
 
-let player;
+const audio = document.getElementById('audio-player');
+const playBtn = document.getElementById('play-btn');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const progressBar = document.getElementById('progress-bar');
+const volumeControl = document.getElementById('volume');
+const currentTimeEl = document.getElementById('current-time');
+const durationEl = document.getElementById('duration');
+const songTitle = document.getElementById('song-title');
+const songArtist = document.getElementById('song-artist');
+const albumImg = document.getElementById('album-img');
+const songList = document.getElementById('song-list');
+const songCount = document.getElementById('song-count');
+
 let currentSongIndex = 0;
 
-// Load YouTube IFrame API
-const tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-const firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-// YouTube API Ready
-function onYouTubeIframeAPIReady() {
-    player = new YT.Player('player', {
-        height: '400',
-        width: '100%',
-        videoId: songs[0].youtubeId,
-        playerVars: {
-            'playsinline': 1,
-            'controls': 1,
-            'rel': 0
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
-        }
-    });
-}
-
-function onPlayerReady(event) {
-    console.log('Player ready!');
+// Initialize
+function init() {
     renderPlaylist();
-    updateNowPlaying();
-
-    // Set initial volume
-    player.setVolume(50);
+    songCount.textContent = songs.length;
+    audio.volume = 0.7;
 }
 
-function onPlayerStateChange(event) {
-    // Update play button when video ends
-    if (event.data == YT.PlayerState.ENDED) {
-        playNext();
-    }
+// Load song
+function loadSong(index) {
+    currentSongIndex = index;
+    const song = songs[index];
 
-    // Update play button text
-    const playBtn = document.getElementById('play-btn');
-    if (event.data == YT.PlayerState.PLAYING) {
-        playBtn.textContent = '⏸️ Pause';
+    audio.src = song.file;
+    songTitle.textContent = song.title;
+    songArtist.textContent = song.artist;
+    albumImg.src = song.cover;
+
+    renderPlaylist();
+}
+
+// Play/Pause
+function togglePlay() {
+    if (audio.paused) {
+        audio.play();
+        playBtn.textContent = '⏸️';
     } else {
-        playBtn.textContent = '▶️ Play';
+        audio.pause();
+        playBtn.textContent = '▶️';
     }
 }
 
+// Next song
+function nextSong() {
+    currentSongIndex = (currentSongIndex + 1) % songs.length;
+    loadSong(currentSongIndex);
+    audio.play();
+    playBtn.textContent = '⏸️';
+}
+
+// Previous song
+function prevSong() {
+    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+    loadSong(currentSongIndex);
+    audio.play();
+    playBtn.textContent = '⏸️';
+}
+
+// Format time
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
+// Update progress
+function updateProgress() {
+    const { currentTime, duration } = audio;
+    const progressPercent = (currentTime / duration) * 100;
+    progressBar.value = progressPercent || 0;
+
+    currentTimeEl.textContent = formatTime(currentTime);
+    if (duration) {
+        durationEl.textContent = formatTime(duration);
+    }
+}
+
+// Set progress
+function setProgress(e) {
+    const width = progressBar.offsetWidth;
+    const clickX = e.offsetX;
+    const duration = audio.duration;
+    audio.currentTime = (clickX / width) * duration;
+}
+
+// Render playlist
 function renderPlaylist() {
-    const songList = document.getElementById('song-list');
     songList.innerHTML = '';
 
     songs.forEach((song, index) => {
@@ -110,50 +132,26 @@ function renderPlaylist() {
         `;
 
         songItem.addEventListener('click', () => {
-            playSong(index);
+            loadSong(index);
+            audio.play();
+            playBtn.textContent = '⏸️';
         });
 
         songList.appendChild(songItem);
     });
 }
 
-function playSong(index) {
-    currentSongIndex = index;
-    player.loadVideoById(songs[index].youtubeId);
-    updateNowPlaying();
-    renderPlaylist();
-}
-
-function updateNowPlaying() {
-    const song = songs[currentSongIndex];
-    document.getElementById('song-title').textContent = song.title;
-    document.getElementById('song-artist').textContent = song.artist;
-}
-
-function playNext() {
-    currentSongIndex = (currentSongIndex + 1) % songs.length;
-    playSong(currentSongIndex);
-}
-
-function playPrevious() {
-    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-    playSong(currentSongIndex);
-}
-
-// Control Buttons
-document.getElementById('play-btn').addEventListener('click', () => {
-    const state = player.getPlayerState();
-    if (state === YT.PlayerState.PLAYING) {
-        player.pauseVideo();
-    } else {
-        player.playVideo();
-    }
+// Event Listeners
+playBtn.addEventListener('click', togglePlay);
+nextBtn.addEventListener('click', nextSong);
+prevBtn.addEventListener('click', prevSong);
+audio.addEventListener('timeupdate', updateProgress);
+progressBar.addEventListener('click', setProgress);
+volumeControl.addEventListener('input', (e) => {
+    audio.volume = e.target.value / 100;
 });
+audio.addEventListener('ended', nextSong);
 
-document.getElementById('next-btn').addEventListener('click', playNext);
-document.getElementById('prev-btn').addEventListener('click', playPrevious);
-
-// Volume Control
-document.getElementById('volume').addEventListener('input', (e) => {
-    player.setVolume(e.target.value);
-});
+// Initialize on load
+init();
+loadSong(0);
