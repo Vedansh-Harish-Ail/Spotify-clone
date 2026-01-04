@@ -22,50 +22,40 @@ function init() {
     fetchSongsFromFolder();
 }
 
-// Auto-Fetch Songs from Server
+// Auto-Fetch Songs from Manifest (Works on GitHub Pages & Local)
 async function fetchSongsFromFolder() {
     try {
-        const response = await fetch('song_mp3');
-        if (!response.ok) throw new Error("Folder not found");
+        // We fetch a JSON file that lists the songs
+        // This is necessary because GitHub Pages doesn't allow "scanning" folders automatically
+        const response = await fetch('songs.json');
+        if (!response.ok) throw new Error("Manifest not found");
 
-        const text = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-        const links = doc.querySelectorAll('a');
+        const songFiles = await response.json();
 
-        const newSongs = [];
-
-        links.forEach(link => {
-            const href = link.getAttribute('href');
-            // Check for MP3s (ignoring parent directory links)
-            if (href.toLowerCase().endsWith('.mp3')) {
-                const fileName = decodeURIComponent(href);
-                const songTitle = fileName.replace('.mp3', '').replace(/_/g, ' ');
-
-                newSongs.push({
-                    title: songTitle,
-                    artist: 'Local Library',
-                    file: `song_mp3/${href}`,
-                    cover: 'https://via.placeholder.com/300/1ed760/000000?text=🎵'
-                });
-            }
+        const newSongs = songFiles.map(filename => {
+            const songTitle = filename.replace('.mp3', '').replace(/_/g, ' ');
+            return {
+                title: songTitle,
+                artist: 'Local Library',
+                file: `song_mp3/${filename}`,
+                cover: 'https://via.placeholder.com/300/1ed760/000000?text=🎵'
+            };
         });
 
         if (newSongs.length > 0) {
             songs = newSongs;
             updateSongCount();
             renderPlaylist();
-            loadSong(0); // Load the first song automatically
-            console.log(`Loaded ${newSongs.length} songs from server.`);
+            loadSong(0);
+            console.log(`Loaded ${newSongs.length} songs from manifest.`);
         } else {
-            // Fallback: Folder empty
-            console.log("Folder found but empty");
+            console.log("Song list search returned empty.");
         }
 
     } catch (error) {
-        console.log("Auto-fetch failed (likely not running on server or folder missing):", error);
-        // Fallback: Fetch failed
-        console.log("Unable to Auto-Fetch. Ensure server is running.");
+        console.log("Fetch failed:", error);
+        // Fallback
+        console.log("Could not load songs.json. Ensure the file exists.");
     }
 }
 
