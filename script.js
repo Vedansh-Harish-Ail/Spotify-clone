@@ -1,7 +1,4 @@
-// Music Player with Drag & Drop Support
-// Just drag MP3 files onto the page to add them!
 
-let songs = [];
 let currentSongIndex = 0;
 
 const audio = document.getElementById('audio-player');
@@ -23,27 +20,17 @@ function init() {
     audio.volume = 0.7;
     updateSongCount();
 
-    // Show instructions if no songs
-    if (songs.length === 0) {
+    // Load the first song if available
+    if (songs.length > 0) {
+        loadSong(0);
+        // Note: Browsers block autoplay without interaction, so we just load it
+    } else {
         songTitle.textContent = "Drag & Drop MP3 files here!";
-        songArtist.textContent = "Or click 'Add Songs' button below";
+        songArtist.textContent = "to add them to your library";
     }
 }
 
-// Add file input for selecting songs
-const addSongsBtn = document.createElement('button');
-addSongsBtn.textContent = '📁 Add Songs';
-addSongsBtn.className = 'control-btn';
-addSongsBtn.style.marginTop = '20px';
-addSongsBtn.onclick = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'audio/mp3,audio/mpeg';
-    input.multiple = true;
-    input.onchange = (e) => handleFiles(e.target.files);
-    input.click();
-};
-document.querySelector('.player-section').appendChild(addSongsBtn);
+
 
 // Handle dropped/selected files
 function handleFiles(files) {
@@ -124,7 +111,13 @@ function togglePlay() {
 // Next song
 function nextSong() {
     if (songs.length === 0) return;
-    currentSongIndex = (currentSongIndex + 1) % songs.length;
+
+    if (isShuffle) {
+        currentSongIndex = Math.floor(Math.random() * songs.length);
+    } else {
+        currentSongIndex = (currentSongIndex + 1) % songs.length;
+    }
+
     loadSong(currentSongIndex);
     audio.play();
     playBtn.textContent = '⏸️';
@@ -133,11 +126,42 @@ function nextSong() {
 // Previous song
 function prevSong() {
     if (songs.length === 0) return;
-    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+
+    if (isShuffle) {
+        currentSongIndex = Math.floor(Math.random() * songs.length);
+    } else {
+        currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+    }
+
     loadSong(currentSongIndex);
     audio.play();
     playBtn.textContent = '⏸️';
 }
+
+// Remix & Shuffle Logic
+let isShuffle = false;
+const shuffleBtn = document.getElementById('shuffle-btn');
+const remixToggle = document.getElementById('remix-toggle');
+const remixPanel = document.getElementById('remix-controls');
+const speedSlider = document.getElementById('speed-slider');
+const speedVal = document.getElementById('speed-val');
+
+shuffleBtn.addEventListener('click', () => {
+    isShuffle = !isShuffle;
+    shuffleBtn.classList.toggle('active', isShuffle);
+});
+
+remixToggle.addEventListener('click', () => {
+    const isHidden = remixPanel.style.display === 'none';
+    remixPanel.style.display = isHidden ? 'block' : 'none';
+    remixToggle.classList.toggle('active', isHidden);
+});
+
+speedSlider.addEventListener('input', (e) => {
+    const speed = e.target.value;
+    audio.playbackRate = speed;
+    speedVal.textContent = speed + 'x';
+});
 
 // Format time
 function formatTime(seconds) {
@@ -212,3 +236,29 @@ audio.addEventListener('ended', nextSong);
 // Initialize on load
 init();
 renderPlaylist();
+
+// Mobile Mini-Player Logic
+const playerSection = document.querySelector('.player-section');
+const playerContent = document.querySelector('.player-section'); // Refers to same main container
+
+// Expand on click (Mobile only)
+playerSection.addEventListener('click', (e) => {
+    // Only expand if screen is mobile size
+    if (window.innerWidth <= 480) {
+        // Prevent closing/opening if clicking actual control buttons (propagate but don't toggle if logic requires)
+        // Actually, better UX: Clicking anywhere opens it, but clicking controls performs action naturally.
+
+        // Check if we didn't click a button directly (buttons handle their own events)
+        const isButton = e.target.closest('button') || e.target.closest('input');
+
+        if (!isButton) {
+            playerSection.classList.toggle('expanded');
+        }
+
+        // Also allow closing by clicking a "down" arrow if we added one, 
+        // or just toggle for now. 
+        // If it's already expanded and we click non-interactive area, close it?
+        // Let's stick to toggle behavior on the 'handle' area.
+    }
+});
+
