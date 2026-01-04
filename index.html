@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Music Player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Indian Music Player</h1>
+            <p>Your personal collection of Indian hits</p>
+        </header>
+
+        <div class="player-section">
+            <!-- YouTube Player -->
+            <div id="player"></div>
+
+            <!-- Now Playing Info -->
+            <div class="now-playing">
+                <h2 id="song-title">Select a song to play</h2>
+                <p id="song-artist">-</p>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button id="prev-btn" class="control-btn">⏮️ Previous</button>
+                <button id="play-btn" class="control-btn play">▶️ Play</button>
+                <button id="next-btn" class="control-btn">Next ⏭️</button>
+            </div>
+
+            <!-- Volume -->
+            <div class="volume-control">
+                <label>🔊 Volume</label>
+                <input type="range" id="volume" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <!-- Playlist -->
+        <div class="playlist">
+            <h3>📋 Playlist</h3>
+            <div id="song-list"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
