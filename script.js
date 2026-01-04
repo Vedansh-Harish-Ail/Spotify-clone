@@ -1,4 +1,5 @@
-
+// Songs list (populated by Auto-Fetch)
+let songs = [];
 let currentSongIndex = 0;
 
 const audio = document.getElementById('audio-player');
@@ -9,8 +10,7 @@ const progressBar = document.getElementById('progress-bar');
 const volumeControl = document.getElementById('volume');
 const currentTimeEl = document.getElementById('current-time');
 const durationEl = document.getElementById('duration');
-const songTitle = document.getElementById('song-title');
-const songArtist = document.getElementById('song-artist');
+
 const albumImg = document.getElementById('album-img');
 const songList = document.getElementById('song-list');
 const songCount = document.getElementById('song-count');
@@ -18,59 +18,60 @@ const songCount = document.getElementById('song-count');
 // Initialize
 function init() {
     audio.volume = 0.7;
-    updateSongCount();
-
-    // Load the first song if available
-    if (songs.length > 0) {
-        loadSong(0);
-        // Note: Browsers block autoplay without interaction, so we just load it
-    } else {
-        songTitle.textContent = "Drag & Drop MP3 files here!";
-        songArtist.textContent = "to add them to your library";
-    }
+    // Auto-fetch songs since we are running on a server
+    fetchSongsFromFolder();
 }
 
+// Auto-Fetch Songs from Server
+async function fetchSongsFromFolder() {
+    try {
+        const response = await fetch('song_mp3');
+        if (!response.ok) throw new Error("Folder not found");
 
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+        const links = doc.querySelectorAll('a');
 
-// Handle dropped/selected files
-function handleFiles(files) {
-    Array.from(files).forEach(file => {
-        if (file.type === 'audio/mpeg' || file.type === 'audio/mp3' || file.name.endsWith('.mp3')) {
-            const url = URL.createObjectURL(file);
-            const songName = file.name.replace('.mp3', '').replace(/_/g, ' ');
+        const newSongs = [];
 
-            songs.push({
-                title: songName,
-                artist: 'Unknown Artist',
-                file: url,
-                cover: 'https://via.placeholder.com/300/667eea/ffffff?text=' + encodeURIComponent(songName.substring(0, 20))
-            });
+        links.forEach(link => {
+            const href = link.getAttribute('href');
+            // Check for MP3s (ignoring parent directory links)
+            if (href.toLowerCase().endsWith('.mp3')) {
+                const fileName = decodeURIComponent(href);
+                const songTitle = fileName.replace('.mp3', '').replace(/_/g, ' ');
+
+                newSongs.push({
+                    title: songTitle,
+                    artist: 'Local Library',
+                    file: `song_mp3/${href}`,
+                    cover: 'https://via.placeholder.com/300/1ed760/000000?text=🎵'
+                });
+            }
+        });
+
+        if (newSongs.length > 0) {
+            songs = newSongs;
+            updateSongCount();
+            renderPlaylist();
+            loadSong(0); // Load the first song automatically
+            console.log(`Loaded ${newSongs.length} songs from server.`);
+        } else {
+            // Fallback: Folder empty
+            console.log("Folder found but empty");
         }
-    });
 
-    updateSongCount();
-    renderPlaylist();
-
-    if (songs.length === 1) {
-        loadSong(0);
+    } catch (error) {
+        console.log("Auto-fetch failed (likely not running on server or folder missing):", error);
+        // Fallback: Fetch failed
+        console.log("Unable to Auto-Fetch. Ensure server is running.");
     }
 }
 
-// Drag and drop handlers
-document.body.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    document.body.style.background = 'linear-gradient(135deg, #1ed760 0%, #667eea 100%)';
-});
 
-document.body.addEventListener('dragleave', (e) => {
-    document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-});
 
-document.body.addEventListener('drop', (e) => {
-    e.preventDefault();
-    document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    handleFiles(e.dataTransfer.files);
-});
+
 
 // Update song count
 function updateSongCount() {
@@ -85,9 +86,7 @@ function loadSong(index) {
     const song = songs[index];
 
     audio.src = song.file;
-    songTitle.textContent = song.title;
-    songArtist.textContent = song.artist;
-    albumImg.src = song.cover;
+    if (albumImg) albumImg.src = song.cover;
 
     renderPlaylist();
 }
@@ -239,7 +238,7 @@ renderPlaylist();
 
 // Mobile Mini-Player Logic
 const playerSection = document.querySelector('.player-section');
-const playerContent = document.querySelector('.player-section'); // Refers to same main container
+
 
 // Expand on click (Mobile only)
 playerSection.addEventListener('click', (e) => {
