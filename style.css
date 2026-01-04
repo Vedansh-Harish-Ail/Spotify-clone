@@ -24,10 +24,53 @@ body {
 
 .container {
     display: grid;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: auto 1fr;
+    /* Header takes content height, Main takes remaining */
     height: 100vh;
     gap: 8px;
     padding: 8px;
+}
+
+/* ... (unchanged header/main-content styles) ... */
+
+/* Tablet & Mobile (max-width: 900px) */
+@media (max-width: 900px) {
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        /* Container doesn't scroll, children do */
+    }
+
+    .playlist {
+        display: block;
+        order: 1;
+        /* Playlist on TOP */
+        flex: 1;
+        /* Take all available empty space */
+        overflow-y: auto;
+        /* Scroll inside the playlist */
+        max-height: none;
+        margin-top: 0;
+        margin-bottom: 5px;
+        /* Tiny gap before player */
+    }
+
+    .player-section {
+        order: 2;
+        /* Player on BOTTOM */
+        flex-shrink: 0;
+        padding: 15px;
+        /* Make player more compact on mobile */
+        max-height: 45%;
+    }
+
+    .album-art {
+        width: 150px;
+        /* Smaller art on mobile to save space */
+        height: 150px;
+        margin-bottom: 10px;
+    }
 }
 
 header {
@@ -414,29 +457,50 @@ button[style*="border: 1px solid"]:hover {
 /* Responsive Design */
 
 /* Tablet & Mobile (max-width: 900px) */
+/* Tablet & Mobile (max-width: 900px) */
 @media (max-width: 900px) {
     .main-content {
-        grid-template-columns: 1fr;
-        /* Stack layout */
-        overflow-y: auto;
-        /* Allow scrolling entire content */
+        display: flex;
+        /* Switch to Flex for easier column stacking */
+        flex-direction: column;
+        overflow: hidden;
     }
 
     .playlist {
         display: block;
-        /* Show playlist */
-        order: 2;
-        /* Move playlist below player */
-        max-height: 300px;
-        /* Limit height */
-        margin-top: 10px;
+        order: 1;
+        /* Playlist moves to TOP */
+        flex: 1;
+        /* Grows to fill the empty space */
+        overflow-y: auto;
+        /* Internal scrolling */
+        max-height: none;
+        /* Remove height limits */
+        margin-top: 0;
+        margin-bottom: 8px;
     }
 
     .player-section {
-        order: 1;
-        /* Player on top */
-        padding: 20px;
+        order: 2;
+        /* Player moves to BOTTOM */
+        flex-shrink: 0;
+        /* Keep player size based on content */
+        padding: 15px;
+        background: var(--spotify-gray);
+        /* Distinguish from playlist */
+        z-index: 5;
     }
+
+    /* Make album art smaller on mobile so it doesn't shove the playlist off screen */
+    .album-art {
+        width: 140px;
+        height: 140px;
+        margin-bottom: 15px;
+        display: none;
+        /* User wants library focus, hide art or keep small? hiding ensures space */
+    }
+
+    /* Show art only if there is space? Let's hide it for now to maximize library space as requested */
 }
 
 /* Mobile (max-width: 480px) */
